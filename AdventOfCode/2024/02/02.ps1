@@ -1,141 +1,104 @@
-Add-Type -AssemblyName System.Windows.Forms
-start-process msedge https://adventofcode.com/2024/day/2/input
-start-sleep -s 5
-[System.Windows.Forms.SendKeys]::SendWait("^a")
-[System.Windows.Forms.SendKeys]::SendWait("^c")
-$lists=Get-Clipboard
-start-sleep -s 5
-$i=0
-$listsafe=@()
-$listsafe2=@()
-foreach($list in $lists){
-    $numbers=$list.split(" ")
-    $x=0
-    ForEach($num in $numbers){
-        $diff=([int32]($numbers[$x+1])-[int32]($numbers[$x]))
-        if([int32]($numbers[$x+1]) -gt [int32]($numbers[$x]) -and $diff -ge 1 -and  $diff -le 3){
-         if($x -eq ($numbers.count-2)){
-            $i++
-            $listsafe+=@($list)
-            break
-         }
-        }
-        else{
-            break
-        }
-        $x++
+function CheckRule {
+  param (
+      [int]$le,  
+      [int]$ge, 
+      [int[]]$numberSet,  
+      [switch]$reverse
+  )
+
+  $linetexst=$numberSet -join " "
+  $splitCount = $numberSet.Count
+
+  for ($i = 0; $i -lt $splitCount - 1; $i++) {    
+    $difference = $numberSet[$i + 1] - $numberSet[$i]
+    if($reverse){
+      $difference = $numberSet[$i] - $numberSet[$i + 1]
     }
+      if ($difference -lt $ge -or $difference -gt $le) {
+          $global:failedarray+=@($linetexst)
+          return 0  # Rule violation, return 0
+      }
+  }
+  $global:passedarray+=@($linetexst)
+  return 1  # If all differences are valid, return 1
+}
+
+
+function CheckRule2 {
+  param (
+      [int]$le,  
+      [int]$ge, 
+      [int[]]$numberSet,  
+      [switch]$reverse
+  )
+   $linetexst=$numberSet -join " "
+   $splitCount = $numberSet.Count
+  
+for($i = 0; $i -le $splitCount - 1; $i++){    
+  $n=0
+  $numberSet2=@()
+   $numberSet|ForEach-Object{  
+    if($n -ne $i){
+      #$n
+      $numberSet2+=@($_)
+    }
+    $n++
+  }
+  
+  $checkrule2=(checkrule -ge $ge -le $le -numberSet $numberSet2)[-1]
+  if($reverse){
+    $checkrule2=(checkrule -ge $ge -le $le -numberSet $numberSet2 -reverse)[-1]
+   }
+   $checkrule2
+   if($checkrule2){
+    $global:passedarray2+=@(($numberSet2 -join " ")+" delete $($numberSet[$i]) in $i of $linetexst")
+    return 1
+  }
+  }    
     
-}
-
-foreach($list in $lists){
-    $numbers=$list.split(" ")
-    $x=0
-    ForEach($num in $numbers){
-        $diff=([int32]($numbers[$x])-[int32]($numbers[$x+1]))
-        if([int32]($numbers[$x+1]) -lt [int32]($numbers[$x]) -and $diff -ge 1 -and  $diff -le 3){
-         if($x -eq ($numbers.count-2)){
-            $i++
-            $listsafe+=@($list)
-            break
-         }
-        }
-        else{
-            break
-        }
-        $x++
-    }
+    $global:failedarray2+=@($linetexst)
+     return 0 
     
+
+ }
+
+ Add-Type -AssemblyName System.Windows.Forms
+ start-process msedge https://adventofcode.com/2024/day/2/input
+ start-sleep -s 5
+ [System.Windows.Forms.SendKeys]::SendWait("^a")
+ [System.Windows.Forms.SendKeys]::SendWait("^c")
+ $lists=Get-Clipboard
+
+
+$passcount=0
+$global:passedarray=$global:failedarray=@()
+foreach($list in $lists){
+  $listarray = $list.Split(" ")
+  $passcount+=CheckRule -ge 1 -le 3 -numberSet $listarray
+}
+$restcheck=$global:failedarray
+$global:failedarray=@()
+foreach($list in $restcheck){
+  $listarray = $list.Split(" ")
+  $passcount+=CheckRule -ge 1 -le 3 -numberSet $listarray -reverse
+}
+$passcount
+
+$passcount2=$passcount
+$restcheck2=$global:failedarray
+$global:passedarray2=$global:failedarray2=@()
+foreach($list in $restcheck2){
+  $listarray = $list.Split(" ")  
+  $passcount2+=(CheckRule2 -ge 1 -le 3 -numberSet $listarray)[-1]  
+}
+$passcount2
+
+$restcheck2=$global:failedarray2
+$global:failedarray2=@()
+foreach($list in $restcheck2){
+  $listarray = $list.Split(" ")  
+  $passcount2+=(CheckRule2 -ge 1 -le 3 -numberSet $listarray -reverse)[-1]
 }
 
-$i
 
-$newlist=$lists|Where-Object {$_ -notin  $listsafe}
-foreach($list in $newlist){
-    $numbers=$list.split(" ")
-    $x=0
-    $act=0
-    ForEach($num in $numbers){
-        $p1=[int32]($numbers[$x+1])
-        $p2=[int32]($numbers[$x])
-        $diff=$p1-$p2
-        if(!($p1 -gt $p2 -and $diff -ge 1 -and  $diff -le 3) -and $act -eq 0){
-            $p1=[int32]($numbers[$x+2])
-            $p2=[int32]($numbers[$x])
-            if($x -eq 0){
-            $p2=[int32]($numbers[$x+1])
-            }
-            if($x -eq ($numbers.count-2)){
-                Write-Host "check 69"
-                start-sleep -s 200
-            }
-            $diff=$p1-$p2
-          if(($p1 -gt $p2 -and $diff -ge 1 -and  $diff -le 3 )){
-            $act=1
-            $remove=$($numbers[$x])
-            if($x -ne 0){
-                $remove=$($numbers[$x+1])
-                $x=$x+1 
-            }
-          }
-        }
-        if(($p1 -gt $p2 -and $diff -ge 1 -and  $diff -le 3) -and $act -eq 1){      
-            if($x -eq ($numbers.count-2)){
-                $i++
-                $listsafe2+=@($list)
-                write-host "remove $remove from $list"   
-                break         
-            }
-        }
-        else{
-            break
-        }
-
-        $x++
-    }
-}
-
-foreach($list in $newlist){
-    $numbers=$list.split(" ")
-    $x=0
-    $act=0
-    ForEach($num in $numbers){
-        $p2=[int32]($numbers[$x+1])
-        $p1=[int32]($numbers[$x])
-        $diff=$p1-$p2
-        if(!($p1 -gt $p2 -and $diff -ge 1 -and  $diff -le 3) -and $act -eq 0){
-            $p2=[int32]($numbers[$x+2])
-            $p1=[int32]($numbers[$x])
-            if($x -eq 0){
-            $p1=[int32]($numbers[$x+1])
-            }
-            $diff=$p1-$p2
-          if(($p1 -gt $p2 -and $diff -ge 1 -and  $diff -le 3 )){
-            $act=1
-            $remove=$($numbers[$x])
-            if($x -ne 0){
-                $remove=$($numbers[$x+1])
-                $x=$x+1 
-            }
-          }
-        }
-        if(($p1 -gt $p2 -and $diff -ge 1 -and  $diff -le 3) -and $act -eq 1){      
-            if($x -eq ($numbers.count-2)){
-                $i++
-                $listsafe2+=@($list)
-                write-host "remove $remove from $list"   
-                break         
-            }
-        }
-        else{
-            break
-        }
-
-        $x++
-    }
-}
-
-$i
-
-
-$newlist2=$lists|Where-Object {$_ -notin  $listsafe -and $_ -notin  $listsafe2}
+$passcount2
