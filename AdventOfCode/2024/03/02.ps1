@@ -1,5 +1,5 @@
 Add-Type -AssemblyName System.Windows.Forms
-start-process msedge https://adventofcode.com/2024/day/2/input
+start-process msedge https://adventofcode.com/2024/day/3/input
 start-sleep -s 5
 [System.Windows.Forms.SendKeys]::SendWait("^a")
 [System.Windows.Forms.SendKeys]::SendWait("^c")
