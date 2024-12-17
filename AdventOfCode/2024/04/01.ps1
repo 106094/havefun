@@ -87,10 +87,7 @@ for($lc=0;$lc -le ($lists.count -1)*2;$lc++){
 
     $countx=0
     $countx=findXMAS -lists $lists
-    $countx
     $countx+=findXMAS -lists $cross1
-    $countx
     $countx+=findXMAS -lists $cross2
-    $countx
     $countx+=findXMAS -lists $buttons
     $countx
