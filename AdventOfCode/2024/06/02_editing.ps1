@@ -10,15 +10,15 @@
 
  
 function checkloop([string]$flag,[int]$x,[int]$y){
-    $Global:n=0
+    $n=0
     $Global:arrayg=@()
-while($x -gt 0 -and $x -lt $linecount -and $y -gt 0 -and $y -lt $dim){
+while($x -ge 0 -and $x -lt $linecount -and $y -ge 0 -and $y -lt $dim){
    $paths="$flag|$($x)|$($y)"
     #$paths
-  if($paths -in $arrayg){
+  if( $paths -in $Global:arrayg ){
     $x=$linecount
-    $Global:n=1
-}
+    $n=1
+  }
 else{
     if($Global:arrayg){
     $x0=($Global:arrayg[-1].split("|"))[1]
@@ -34,31 +34,31 @@ else{
     $Global:arrayg+=@($paths)
    }
         
-}
-if($x -gt 0 -and $x -lt $linecount -and $y -gt 0 -and $y -lt $dim){
+
+if($x -ge 0 -and $x -lt $linecount -and $y -ge 0 -and $y -lt $dim){
  if($flag -eq "v"){
-    if($array[($x+1),$y] -eq "#"){     
+    if($array[$($x+1),$y] -eq "#"){     
         $flag="<"
     }else{
         $x++
     }
   }
   elseif($flag -eq "<"){
-    if($array[$x,($y-1)] -eq "#"){        
+    if($array[$x,$($y-1)] -eq "#"){        
         $flag="^"
     }else{
         $y--      
     }
   }
   elseif($flag -eq "^"){
-    if($array[($x-1),$y] -eq "#"){        
+    if($array[$($x-1),$y] -eq "#"){        
         $flag=">"
     }else{
         $x--
     }
   }
   elseif($flag -eq ">"){
-    if($array[$x,($y+1)] -eq "#"){       
+    if($array[$x,$($y+1)] -eq "#"){       
       $flag= "v"
     }else{        
        $y++ 
@@ -66,7 +66,9 @@ if($x -gt 0 -and $x -lt $linecount -and $y -gt 0 -and $y -lt $dim){
     }
    }
   }
- }
+}
+}
+$n
 }
 
  
@@ -91,16 +93,18 @@ $iniarray=$Global:arrayg
 new-item -Path "C:\tmp\test\myresult.txt" -Force|out-null
 $checkloop=0
 $i=0
+$blocks=@()
 foreach($inia in $iniarray){
     if($i -gt 0){
      $flag,$x,$y=($inia).split("|")
      $flag1,$x1,$y1=($inia0).split("|")
      $array[$x,$y]="#"
-     $Global:n=0
-     checkloop -flag $flag1 -x $x1 -y $y1     
-     if($Global:n -eq 1){
-        $checkloop+=$Global:n
+     $n=0
+     $n=checkloop -flag $flag1 -x $x1 -y $y1
+     if($n -eq 1 -and $inia -notin $blocks){
+        $checkloop+=$n
        add-content -path "C:\tmp\test\myresult.txt" -value "$x,$y"
+       $blocks+=@($inia)
        write-host "$x,$y, $checkloop"       
      }
      $array[$x,$y]="."
